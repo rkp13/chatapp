@@ -1,0 +1,16 @@
+{
+  "name": "chatio",
+  "version": "0.0.1",
+  "private": "true",
+  "dependencies": {
+    "socket.io": "*",
+    "express": "*"
+  },
+  "description": "chat application",
+  "main": "app.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "rishi",
+  "license": "ISC"
+}
