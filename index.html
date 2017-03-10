@@ -1,131 +1,69 @@
-<!DOCTYPE html>
+<!DOCTYPE HTML>
 <html>
-    <head>
-        <title>ChatIO</title>
-        <style>
-            body{
-                background: #eeeeee;
-            }
+<head>
+</head>
+<body>
+	<style type="text/css">								
+		#login{			
+			border:1px #ccc solid;
+			border-radius: 10px;
+			background: #f4f4f4;
+			padding:10px;
+			margin-left:20px;
+			width: 400px;
+			height: 220px;
 
-            #container{
-                width:700px;
-                margin:0 auto;
-            }
+		}
+		#namo{
+			margin: 5px;
+			float: left;
+			width: 300px;					
+		}			
+	</style>
+	
+	<div id="login">		
+		<div id="error"></div>
+		<form id="usernameForm">
+			<div style="float:left">
+				<p size="35">Email:<br><br>Password</p>
+			</div>
+			<div id="namo">
+				<input size="35" id="username"><br><br>
+				<input size="35" id="pass"><br><br>
+			</div>				
+			<center><input type="submit" value="Submit"></center><br>
+		</form>		
+		<center><p>Not a Member? Register <a href="/reg">here.</a></p></center>			
+	</div>
 
-            #chatWindow{
-                height: 300px;
-            }
+	<script src="http://code.jquery.com/jquery-latest.min.js"></script>
+	<script src="/socket.io/socket.io.js"></script>
+	<script type="text/javascript">
+		var socket = io.connect(); 			
 
-            #mainWrapper{
-                display:none;
-            }
+		$(function(){
+			var $usernameForm = $('#usernameForm');
+			var $error = $('#error');
+			var $reg = $('#reg');
+			var $login = $('#login');
 
-            #chatWrapper{
-                float:left;
-                border:1px #ccc solid;
-                border-radius: 10px;
-                background: #b39ddb;
-                padding: 10px;
-            }
+			$usernameForm.submit(function(e){
+				e.preventDefault();
+				var _name = $('#username').val();
+				var _pass = $('#pass').val();
+				socket.emit('checkUser',{name: _name , password: _pass});
+			});
 
-            #userWrapper{
-                float: left;
-                border:1px #ccc solid;
-                border-radius: 10px;
-                background: #7986cb;
-                padding: 10px;
-                margin-left:20px;
-                width:150px;
-                max-height:200px;
-            }
-
-            #namesWrapper{
-                float: left;
-                border:1px #ccc solid;
-                border-radius: 10px;
-                background: #f4f4f4;
-                padding:10px;
-                margin-left:20px;
-            }
-
-            input{
-                height:30px;
-            }
-
-        </style>
-    </head>
-
-    <body>
-        <div id="container">
-            <div id="namesWrapper">
-                <h2>ChatIO</h2>
-                <p>Create Username:</p>
-                <div id="error"></div>
-                <form id="usernameForm">
-                    <input size="35" id="username">
-                    <input type="submit" value="Submit">
-                </form>
-            </div>
-
-            <div id="mainWrapper">
-                <h2>ChatIO</h2>
-                <div id="chatWrapper">
-                    <div id="chatWindow"></div>
-                    <form id="messageForm">
-                        <input size="35" id="message" placeholder="Type Something...">
-                        <input type="submit" value="Say It!">
-                    </form>
-                </div>
-
-                <div id="userWrapper">
-                    <div id="users"></div>
-                </div>
-            </div>
-        </div>
-        <script src="http://code.jquery.com/jquery-latest.min.js"></script>
-        <script src="/socket.io/socket.io.js"></script>
-        <script>
-            $(function(){
-                var socket = io.connect();
-                var $messageForm = $('#messageForm');
-                var $message = $('#message');
-                var $chat = $('#chatWindow');
-                var $usernameForm = $('#usernameForm');
-                var $users = $('#users')
-                var $username = $('#username');
-                var $error = $('#error');
-
-                $usernameForm.submit(function(e){
-                    e.preventDefault();
-                    socket.emit('new user', $username.val(), function(data){
-                        if(data){
-                            $('#namesWrapper').hide();
-                            $('#mainWrapper').show();
-                        } else {
-                            $error.html('Username is already taken');
-                        }
-                    });
-                    $username.val('');
-                });
-
-                socket.on('usernames', function(data){
-                    var html = '';
-                    for(i = 0; i < data.length; i++){
-                        html += data[i] + '<br/>';
-                    }
-                    $users.html(html);
-                })
-
-                $messageForm.submit(function(e){
-                    e.preventDefault();
-                    socket.emit('send message', $message.val());
-                    $message.val('');
-                });
-
-                socket.on('new message', function(data){
-                    $chat.append('<strong>'+ data.user + '</strong>: '+data.msg+'<br/>');
-                });
-            })
-        </script>
-    </body>
+			socket.on('validateUser',function(data){
+				console.log('Validation'+data.status);
+				if(data.status)
+					window.location = 'second';
+				else{					
+					alert('User not registered.')
+					window.location = '';
+				}
+			});
+		});
+	</script>
+</body>
 </html>

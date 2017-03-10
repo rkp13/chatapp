@@ -1,0 +1,39 @@
+<html>
+	<head>
+	<style type="text/css">
+		#namesWrapper{
+            float: left;
+            border:1px #ccc solid;
+            border-radius: 10px;
+            background: #f4f4f4;
+            padding:10px;
+            margin-left:20px;
+            width: 300px;
+        }
+        #in{
+        	width:130%;
+        }
+	</style>
+	</head>
+	<body>
+		<div id="namesWrapper">
+			<div id="reg">		
+				<form method="post" action='/second' id="regform">
+					<center>
+						<div style="float:left; margin:5px;">
+							<p>Name:<br><br>Email<br><br>Password<br><br></p>
+						</div>						
+						<div style="float:left;margin:3px;padding:1px">
+							<input id="in" type="text" name="name" id="name"><br><br>
+							<input id="in" type="email" name="email" id="email"><br><br>
+							<input id="in" type="password" name="pass" id="password"><br><br>	
+						</div>						
+						<center><input type="submit" value="submit"></center>
+					</center>
+				</form>
+			</div>
+		</div>
+		<script type="text/javascript">			
+		</script>
+	</body>	
+</html>	
