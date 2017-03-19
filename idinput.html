@@ -1,0 +1,115 @@
+<html>
+<head>
+	<style type="text/css">
+		#namesWrapper{
+			float: left;
+			border:1px #ccc solid;
+			border-radius: 10px;
+			background: #f4f4f4;
+			padding:10px;
+			margin-left:20px;
+		}
+	</style>
+</head>
+<body>
+	<div id="omsg"></div>    
+	<div id="msg"></div><br><br>
+
+	<h2>Chat Window</h2>
+	<div id="namesWrapper">		
+		<p>Create Room:</p>
+		<p>Enter name of the room</p>
+		<div id="error"></div>
+		<form id="usernameForm2" method="post" action="/second">
+			<input size="35" type="text" name="username" id="username">
+			<input id="submit" type="submit" value="Submit">
+		</form>        
+	</div>
+	<div id="namesWrapper">		
+		<p>Join Room:</p>
+		<p>Enter ID of the room to join</p>
+		<div id="error"></div>
+		<form id="usernameForm" method="post" action="/second">
+			<input size="35" type="text" name="username" id="username" style="display: none;">
+			<input size="35" type="text" name="actualname" id="actualname">
+			<input id="submit" type="submit" value="Submit">
+		</form>        
+	</div>	
+	<script src="http://code.jquery.com/jquery-latest.min.js"></script>
+	<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/jquery-cookie/1.4.1/jquery.cookie.min.js"></script>
+	<script src="/socket.io/socket.io.js"></script>
+	<script type="text/javascript">
+		$(function(){
+			var socket = io.connect();
+
+			var $msg = $('#msg');
+			var $omsg = $('#omsg');				       
+			var $usernameForm = $('#usernameForm');				
+			var $username = $('#username');
+			var $aname = $('#actualname');
+			var $error = $('#error');
+			var _id = $username.val();			 
+			var backId='';
+			var eid='';
+
+			function getCookie(name){
+				var ar = document.cookie.split(';');
+				for(x=0; x<ar.length;x++){
+					t = ar[x];
+					t = t.trim();
+					if(t.substring(0,t.indexOf('=')) == name)
+						return t.substring(t.indexOf('=')+1);
+				}
+			}
+			$('#usernameForm2').submit(function(e){
+				//e.preventDefault();
+				_id = getCookie('oname');				
+				$.cookie('roomname',$username.val());
+				socket.emit('setroomtodb',{id: getCookie('oname'),roomname: $username.val()});
+				$username.val(getCookie('oname'));
+				console.log(_id);
+				socket.emit('new user', {eid: _id, id: getCookie('oname')}, function(data){
+					if(!data){
+						$error.html('No Such ID exists');
+					}
+					//$username.val('');
+				});
+				//$(this).unbind('submit').submit();
+			});
+
+			socket.on('updateroomcookie',function(data){
+				console.log('Fetched room is '+data.roomname);
+				$.cookie('roomname',data.roomname);
+			});
+
+			$('#usernameForm').submit(function(e){
+				//e.preventDefault();
+				//emit to db get roomname
+				console.log($aname.val()+" This is the id");
+				socket.emit('getroomname',{id: $aname.val()});			
+				
+				socket.emit('new user', {eid: $aname.val(), id: getCookie('oname')}, function(data){
+					if(!data){
+						$error.html('No Such ID exists');
+					}
+					//$username.val('');
+				});
+				$username.val($aname.val());
+				//$(this).unbind('submit').submit();
+			});
+
+			function displayID(){            
+				$('#msg').html('Your unique ID is '+getCookie('oname'));	
+			}
+			//displayID();			
+
+			/*socket.emit('new user', {eid: _id, id: getCookie('oname')}, function(data){
+				if(!data){
+					$error.html('No Such ID exists');
+				}
+				$username.val('');
+			});*/
+		});
+	</script>
+</body>
+</html>

@@ -1,383 +1,362 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>ChatIO</title>
-    <style>
-        body{
-            background: #eeeeee;
-        }
+	<title>ChatIO</title>
+	<style>
+		body{
+			background: #eeeeee;
+		}
 
-        #container{
-            width:100%;            
-        }
+		#container{
+			width:100%;            
+		}
 
-        #chatWindow{
-            height: 300px;
-        }
-        #chatWindow2{
-            height: 300px;            
-            display: none;
-        }
-        #chatWindow3{
-            height: 300px;
-            display: none;
-        }
+		#chatWindow{
+			height: 300px;
+		}
 
-        #mainWrapper{
-            display:none;
-        }
+		#chatWrapper{
+			float:left;
+			border:1px #ccc solid;
+			border-radius: 10px;
+			background: #b39ddb;
+			padding: 10px;
+		}
 
-        #chatWrapper{
-            float:left;
-            border:1px #ccc solid;
-            border-radius: 10px;
-            background: #b39ddb;
-            padding: 10px;
-        }
+		#userWrapper{
+			float: left;
+			border:1px #ccc solid;
+			border-radius: 10px;
+			background: #7986cb;
+			padding: 10px;
+			margin-left:20px;
+			width:150px;
+			max-height:200px;
+			display: none;
+		}
 
-        #userWrapper{
-            float: left;
-            border:1px #ccc solid;
-            border-radius: 10px;
-            background: #7986cb;
-            padding: 10px;
-            margin-left:20px;
-            width:150px;
-            max-height:200px;
-        }
+		#users{
+			display: none;
+		}
 
-        #namesWrapper{
-            float: left;
-            border:1px #ccc solid;
-            border-radius: 10px;
-            background: #f4f4f4;
-            padding:10px;
-            margin-left:20px;
-        }
+		#namesWrapper{
+			float: left;
+			border:1px #ccc solid;
+			border-radius: 10px;
+			background: #f4f4f4;
+			padding:10px;
+			margin-left:20px;
+		}
 
-        input{
-            height:30px;
-        }               
-        #canvas{  
-           clear: both;
-           vertical-align: bottom;                      
-        }
-        #canvas2{  
-           display: none;                      
-           clear: both;
-           vertical-align: bottom;
-        } 
-        #canvas3{  
-           display : none;        
-           clear: both;
-           vertical-align: bottom;              
-        }  
-   </style>
+		input{
+			height:30px;
+		}               
+		#canvas{  
+			clear: both;
+			vertical-align: bottom;                      
+		}		
+		#banner{
+			font-weight: bold;
+			font-size: 1.875em;
+			margin-left: 35px;
+		}
+	</style>
 </head>
 
-<body>    
-    <div id="namesWrapper">
-        <h2>ChatIO</h2>
-        <p>Create Username:</p>
-        <div id="error"></div>
-        <form id="usernameForm">
-            <input size="35" id="username">
-            <input type="submit" value="Submit">
-        </form>
-    </div>
+<body>
+	<div id="omsg"></div>    
+	<div id="msg"></div><br><br>	
+	<div id="banner"></div>
+	<div id="mainWrapper">
+		<h2>Chat Window</h2>                
+		<div id="container">
+			<div id="chatWrapper">
+				<div id="chatWindow"></div>            
+				<form id="messageForm">
+					<input size="35" id="message" placeholder="Type Something...">
+					<input type="submit" value="Say It!">
+				</form>
+			</div>
+			<div id="userWrapper">
+				<div id="users"></div>
+			</div>                  
+			<div id="canvas" >     
+				<canvas id="paper" style="border: 3px solid black;" width="500" height="500"></canvas>
+			</div>        
+		</div>        
+	</div>
 
-    <div id="mainWrapper">
-        <h2>ChatIO</h2>
-        <form id="room">
-          <input type="radio" onclick="switchRoom('1');" name="R" value="1">Room 1 
-          <input type="radio" onclick="switchRoom('2');" name="R" value="2"> Room 2 
-          <input type="radio" onclick="switchRoom('3');" name="R" value="3"> Room 3  
-      </form>         
-      <div id="container">
-        <div id="chatWrapper">
-            <div id="chatWindow"></div>
-            <div id="chatWindow2"></div>
-            <div id="chatWindow3"></div>
-            <form id="messageForm">
-                <input size="35" id="message" placeholder="Type Something...">
-                <input type="submit" value="Say It!">
-            </form>
-        </div>
+	<script src="http://code.jquery.com/jquery-latest.min.js"></script>
+	<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/jquery-cookie/1.4.1/jquery.cookie.min.js"></script>
+	<script src="/socket.io/socket.io.js"></script>
+	<script type="text/javascript">   
+		var socket = io.connect();     
 
-        <div id="userWrapper">
-            <div id="users"></div>
-        </div>                  
-        <div id="canvas" >     
-            <canvas id="paper" style="border: 3px solid black;" width="500" height="500"></canvas>
-        </div>
-        <div id="canvas2" >     
-            <canvas id="paper2" style="border: 3px solid black;" width="500" height="500"></canvas>
-        </div>
-        <div id="canvas3" >     
-            <canvas id="paper3" style="border: 3px solid black;" width="500" height="500"></canvas>
-        </div>    
-    </div>        
-</div>
+		$(function(){    
+			var $msg = $('#msg');
+			var $omsg = $('#omsg');
+			var $messageForm = $('#messageForm');
+			var $message = $('#message');
+			var $chat = $('#chatWindow');        				
+			var $users = $('#users')
+			var $username = $('#username');
+			var $error = $('#error');
+			var canvas = $('#paper');        
+			var $divc1 = $('#canvas');  
+			var backId='';   
+			var eid = ''; 
+			var flag = false;
 
-<script src="http://code.jquery.com/jquery-latest.min.js"></script>
-<script src="/socket.io/socket.io.js"></script>
-<script type="text/javascript">   
-    var socket = io.connect(); 
+			$.cookie('dispname',[]);
 
-    socket.on('connect',function(){
-        socket.emit('room',room);
-        switchRoom('1');
-    });
+			document.cookie = 'flag='+flag;
 
-    function switchRoom(room){
-        socket.emit('room',room);
-    }
-    $(function(){    
+			$('#banner').html('Room Name: '+getCookie('roomname'));
+			//socket.emit('genid',{});
 
-        var room = 1;        
-        var $messageForm = $('#messageForm');
-        var $message = $('#message');
-        var $chat = $('#chatWindow');
-        var $chat2 = $('#chatWindow2');
-        var $chat3 = $('#chatWindow3');
-        var $usernameForm = $('#usernameForm');
-        var $users = $('#users')
-        var $username = $('#username');
-        var $error = $('#error');
-        var canvas = $('#paper');
-        var canvas2 = $('#paper2');
-        var canvas3 = $('#paper3');
-        var $divc1 = $('#canvas');
-        var $divc2 = $('#canvas2');
-        var $divc3 = $('#canvas3');
-        
-        $('input[type=radio][name="R"]').change(function() {
-            if (this.value == "1") {
-                $chat3.hide();
-                $chat2.hide();
-                $chat.show();
-                $divc2.hide();
-                $divc3.hide();
-                $divc1.show();
-                room = 1;
-            }
-            if (this.value == "2") {
-                $chat3.hide();
-                $chat.hide();
-                $chat2.show();
-                $divc1.hide();
-                $divc3.hide();
-                $divc2.show();
-                room = 2;   
-            }
-            if (this.value == "3") {
-                $chat2.hide();
-                $chat.hide(); 
-                $chat3.show();
-                $divc1.hide();
-                $divc2.hide();
-                $divc3.show();               
-                room = 3;
-            }
-        });
+			socket.emit('new user', {eid: getCookie('name'), id: getCookie('oname')}, function(data){
+				if(!data){
+					$error.html('No Such ID exists');
+				}				
+			});
 
-        $usernameForm.submit(function(e){
-            e.preventDefault();
-            socket.emit('new user', $username.val(), function(data){
-                if(data){
-                    $('#namesWrapper').hide();
-                    $('#mainWrapper').show();
-                } else {
-                    $error.html('Username is already taken');
-                }
-            });
-            $username.val('');
-        });
+			socket.emit('getname',{id: getCookie('oname')});
 
-        socket.on('usernames', function(data){
-            var html = '';
-            for(i = 0; i < data.length; i++){
-                html += data[i] + '<br/>';
-            }
-            $users.html(html);
-        })
+			socket.emit('getroomname',{id: getCookie('name')});
 
-        $messageForm.submit(function(e){
-            e.preventDefault();
-            socket.emit('send message', $message.val());
-            $message.val('');
-        });
+			socket.on('updateroomcookie',function(data){
+				console.log('Fetched room is '+data.roomname);
+				$.cookie('roomname',data.roomname);
+				$('#banner').html('Room Name: '+getCookie('roomname'));
+			});
 
-        socket.on('new message', function(data){
-            console.log(data.room);
-            room = data.room;
-            if(data.room == 1){
-                $chat.append('<strong>'+ data.user + '</strong>: '+data.msg+'<br/>');                
-            }
-            if(data.room == 2){
-                $chat2.append('<strong>'+ data.user + '</strong>: '+data.msg+'<br/>');
-            }
-            if(data.room == 3){
-                $chat3.append('<strong>'+ data.user + '</strong>: '+data.msg+'<br/>');
-            }
-            
-        });
+			socket.on('recievename',function(data){
+				var ar = $.cookie('dispname').split(',');
+				console.log(data);
+				tflag = true;
+				for(x=0;x<ar.length;x++){
+					if(ar[x]==data){
+						tflag = false;
+						break;
+					}
+				}
+				if(flag)
+					ar.push(data);
+				//$.cookie('dispname',[]);
+				$.cookie('dispname',ar);
+			});
 
-        //------------------------------------------------------------
+			function getCookie(name){
+				var ar = document.cookie.split(';');
+				for(x=0; x<ar.length;x++){
+					t = ar[x];
+					t = t.trim();
+					if(t.substring(0,t.indexOf('=')) == name)
+						return t.substring(t.indexOf('=')+1);
+				}
+			}
 
-        if(!('getContext' in document.createElement('canvas'))){
-            alert('Sorry, it looks like your browser does not support canvas!');
-            return false;
-        }        
+			function setCookie(name,value){
+				var ar = document.cookie.split(';');
+				for(x=0; x<ar.length;x++){
+					t = ar[x];
+					t = t.trim();
+					if(t.substring(0,t.indexOf('=')) == name){
+						ar[x] = name+'='+value;
+					}
+				}
+			}
 
-        var doc = $(document),
-        win = $(window),
-        //canvas = $('#paper'),
-        ctx = canvas[0].getContext('2d'),
-        ctx2 = canvas2[0].getContext('2d'),
-        ctx3 = canvas3[0].getContext('2d'),
-        instructions = $('#instructions');
+			function displayID(){            
+				//$('#msg').html('Your unique ID is '+getCookie('oname'));
+				$('#omsg').html('Room ID is '+getCookie('name'));
+			}
+			displayID();
+			/*function doesIdMatch(data){
+				if(eid == data)
+					return true;
+				return false;
+			}
 
-        // Generate an unique ID
-        var id = Math.round($.now()*Math.random());
+			socket.on('showid',function(data){            
+					//console.log(data.id);
+					backId = data.id;
+					eid = data.eid;
+					socket.emit('new user', eid, function(data){
+						if(!data){
+							$error.html('No Such ID exists');
+						}
+					});
+					displayID();
+					flag = doesIdMatch(data.eid);
+				});	*/							
 
-        // A flag for drawing activity
-        var drawing = false;
+				socket.on('usernames', function(data){				
+					if(data.eid == getCookie('name')){				
+						var ar = $.cookie('dispname').split(',');
+						console.log(ar);
+						console.log(data.usernames);
+						tflag = true;
+						for(x=0;x<ar.length;x++){
+							if(ar[x]==data.usernames){
+								tflag = false;
+								break;
+							}
+						}
+						if(flag)
+							ar.push(data.usernames);
+						//$.cookie('dispname',[]);
+						$.cookie('dispname',ar);
+						usersUpdate();
+					}
+				});
 
-        var clients = {};
-        var cursors = {};
+				function usersUpdate(){
+					//$users.html('');
+					var html = '';
+					var ar = $.cookie('dispname').split(','); 
+					for(i = 1; i < ar.length; i++){
+						html += ar[i] + '<br/>';
+					}
+					$users.html(html);	
+				}
 
-        socket.on('moving', function (data) {
+				$messageForm.submit(function(e){
+					e.preventDefault();
+					socket.emit('send message', {msg: $message.val(),id: getCookie('oname'),eid: getCookie('name')});
+					$message.val('');
+				});
 
-            if(! (data.id in clients)){
-                // a new user has come online. create a cursor for them
-                cursors[data.id] = $('<div class="cursor">').appendTo('#cursors');
-            }
+				socket.on('new message', function(data) {            
+					//backId = data.id;
+					if(data.eid == getCookie('name')){				
+						$chat.append('<strong>'+ data.user + '</strong>: '+data.msg+'<br/>');             
+					}						
+				});
 
-            // Move the mouse pointer
-            cursors[data.id].css({
-                'left' : data.x,
-                'top' : data.y
-            });
+				//-----------------------------------------------------------
 
-            // Is the user drawing?
-            if(data.drawing && clients[data.id]){
+				if(!('getContext' in document.createElement('canvas'))){
+					alert('Sorry, it looks like your browser does not support canvas!');
+					return false;
+				}        
 
-                // Draw a line on the canvas. clients[data.id] holds
-                // the previous position of this user's mouse pointer
+				var doc = $(document),
+				win = $(window),
+				//canvas = $('#paper'),
+				ctx = canvas[0].getContext('2d'),        
+				instructions = $('#instructions');
 
-                drawLine(clients[data.id].x, clients[data.id].y, data.x, data.y);
-            }
+				// Generate an unique ID
+				var id = Math.round($.now()*Math.random());
 
-            // Saving the current client state
-            clients[data.id] = data;
-            clients[data.id].updated = $.now();
-        });
+				// A flag for drawing activity
+				var drawing = false;
 
-        socket.on('updateroom',function(data){
-            room = data.room;
-        });
-            
-        
+				var clients = {};
+				var cursors = {};
 
-        var prev = {};
+				socket.on('moving', function (data) {
 
-        canvas.on('mousedown',function(e){
-            e.preventDefault();
-            drawing = true;
-            prev.x = e.clientX;
-            prev.y = e.clientY;
+					if(! (data.id in clients)){
+						// a new user has come online. create a cursor for them
+						cursors[data.id] = $('<div class="cursor">').appendTo('#cursors');
+					}	
 
-            // Hide the instructions
-            instructions.fadeOut();
-        });
-        canvas2.on('mousedown',function(e){
-            e.preventDefault();
-            drawing = true;
-            prev.x = e.clientX;
-            prev.y = e.clientY;
+					// Move the mouse pointer
+					cursors[data.id].css({
+						'left' : data.x,
+						'top' : data.y
+					});
 
-            // Hide the instructions
-            instructions.fadeOut();
-        });
-        canvas3.on('mousedown',function(e){
-            e.preventDefault();
-            drawing = true;
-            prev.x = e.clientX;
-            prev.y = e.clientY;
+					// Is the user drawing?
+					if(data.drawing && clients[data.id] && data.eid == getCookie('name')){
 
-            // Hide the instructions
-            instructions.fadeOut();
-        });
+						// Draw a line on the canvas. clients[data.id] holds
+						// the previous position of this user's mouse pointer 
+						drawLine(clients[data.id].x, clients[data.id].y, data.x, data.y);						
+					}
 
-        doc.bind('mouseup mouseleave',function(){
-            drawing = false;
-        });
+					// Saving the current client state
+					clients[data.id] = data;
+					clients[data.id].updated = $.now();
+				});	
 
-        var lastEmit = $.now();
+				socket.on('broadcastroom',function(data){
+					if(data.eid == getCookie('name'))
+						document.cookie = 'flag=true';
+					else
+						document.cookie = 'flag=false';
+				});
 
-        doc.on('mousemove',function(e){
-            if($.now() - lastEmit > 30){
-                socket.emit('mousemove',{
-                    'x': e.clientX,
-                    'y': e.clientY,
-                    'drawing': drawing,
-                    'id': id
-                });
-                lastEmit = $.now();
-            }
+				var prev = {};
 
-            // Draw a line for the current user's movement, as it is
-            // not received in the socket.on('moving') event above
+				canvas.on('mousedown',function(e){
+					e.preventDefault();
+					drawing = true;
+					prev.x = e.clientX;
+					prev.y = e.clientY;
 
-            if(drawing){
-                drawLine(prev.x, prev.y, e.clientX, e.clientY);
-                prev.x = e.clientX;
-                prev.y = e.clientY;
-            }
-        });
+					// Hide the instructions
+					instructions.fadeOut();
+				});
 
-        // Remove inactive clients after 10 seconds of inactivity
-        setInterval(function(){
-            for(ident in clients){
-                if($.now() - clients[ident].updated > 10000)
-                {
+				doc.bind('mouseup mouseleave',function(){
+					drawing = false;
+				});
 
-                    // Last update was more than 10 seconds ago.
-                    // This user has probably closed the page
+				var lastEmit = $.now();
 
-                    cursors[ident].remove();
-                    delete clients[ident];
-                    delete cursors[ident];
-                }
-            }
+				doc.on('mousemove',function(e){
+					if($.now() - lastEmit > 30){					
+						socket.emit('mousemove',{
+							'x': e.clientX,
+							'y': e.clientY,
+							'drawing': drawing,
+							'id': id,
+							'eid': getCookie('name')
+						});
+						lastEmit = $.now();
+					}
 
-        },10000);
+					// Draw a line for the current user's movement, as it is
+					// not received in the socket.on('moving') event above
 
-        function drawLine(fromx, fromy, tox, toy){
-            /*ctx.moveTo(fromx, fromy-130);
-            ctx.lineTo(tox, toy-130);
-            ctx.stroke();*/
-            console.log("room is"+room);
-            socket.emit('getroom',{});            
-            if(room == 1){
-                ctx.moveTo(fromx, fromy-130);
-                ctx.lineTo(tox, toy-130);
-                ctx.stroke();
-            }
-            if(room == 2){
-                ctx2.moveTo(fromx, fromy-130);
-                ctx2.lineTo(tox, toy-130);
-                ctx2.stroke();
-            }
-            if(room == 3){
-                ctx3.moveTo(fromx, fromy-130);
-                ctx3.lineTo(tox, toy-130);
-                ctx3.stroke();
-            }
-        }
+					if(drawing){
+						drawLine(prev.x, prev.y, e.clientX, e.clientY);						
+					}
 
-    });
-</script>
-</body>
-</html>
+
+					prev.x = e.clientX;
+					prev.y = e.clientY;			    				
+				});
+			//});
+
+				// Remove inactive clients after 10 seconds of inactivity
+				setInterval(function(){
+					for(ident in clients){
+						if($.now() - clients[ident].updated > 10000)
+						{
+							// Last update was more than 10 seconds ago.
+							// This user has probably closed the page
+							cursors[ident].remove();
+							delete clients[ident];
+							delete cursors[ident];
+						}
+					}
+				},10000);
+
+				function drawLine(fromx, fromy, tox, toy){
+					socket.emit('checkroom',{eid: getCookie('name')});
+					console.log(getCookie('flag'));
+					if(getCookie('flag')){
+						ctx.moveTo(fromx, fromy-130);
+						ctx.lineTo(tox, toy-130);
+						ctx.stroke();		
+					}
+				}			
+
+			});
+		</script>
+	</body>
+	</html>

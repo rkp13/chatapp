@@ -55,9 +55,11 @@
 			});
 
 			socket.on('validateUser',function(data){
-				console.log('Validation'+data.status);
-				if(data.status)
-					window.location = 'second';
+				console.log('Validation '+data.status);
+				if(data.status){	
+					if($('#username').val().length>0)
+						window.location = 'idinput';
+				}
 				else{					
 					alert('User not registered.')
 					window.location = '';

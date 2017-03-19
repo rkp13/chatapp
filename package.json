@@ -4,7 +4,9 @@
   "private": "true",
   "dependencies": {
     "body-parser": "^1.17.1",
+    "cookie-parser": "^1.4.3",
     "express": "*",
+    "express-session": "^1.15.1",
     "mongoose": "^4.8.6",
     "socket.io": "*"
   },

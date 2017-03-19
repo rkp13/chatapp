@@ -10,7 +10,7 @@
             margin-left:20px;
             width: 300px;
         }
-        #in{
+        .in{
         	width:130%;
         }
 	</style>
@@ -18,22 +18,21 @@
 	<body>
 		<div id="namesWrapper">
 			<div id="reg">		
-				<form method="post" action='/second' id="regform">
+				<form method="post" action='/idinput' id="regform">
 					<center>
 						<div style="float:left; margin:5px;">
 							<p>Name:<br><br>Email<br><br>Password<br><br></p>
 						</div>						
 						<div style="float:left;margin:3px;padding:1px">
-							<input id="in" type="text" name="name" id="name"><br><br>
-							<input id="in" type="email" name="email" id="email"><br><br>
-							<input id="in" type="password" name="pass" id="password"><br><br>	
+							<input id="name" class="in" type="text" name="name" id="name"><br><br>
+							<input class="in" type="email" name="email" id="email"><br><br>
+							<input class="in" type="password" name="pass" id="password"><br><br>	
 						</div>						
 						<center><input type="submit" value="submit"></center>
 					</center>
 				</form>
-			</div>
+			</div>			
 		</div>
-		<script type="text/javascript">			
-		</script>
+		</div>
 	</body>	
 </html>	
