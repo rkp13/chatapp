@@ -67,8 +67,12 @@
 	<div id="omsg"></div>    
 	<div id="msg"></div><br><br>	
 	<div id="banner"></div>
-	<div id="mainWrapper">
-		<h2>Chat Window</h2>                
+	<div id="mainWrapper">		
+		<div id="addroom">
+			<img src="/button.png"/>
+			<p>Click To Add/Join another room</p>
+		</div>
+		<h2>Chat Window</h2>
 		<div id="container">
 			<div id="chatWrapper">
 				<div id="chatWindow"></div>            
@@ -90,7 +94,7 @@
 	<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/jquery-cookie/1.4.1/jquery.cookie.min.js"></script>
 	<script src="/socket.io/socket.io.js"></script>
 	<script type="text/javascript">   
-		var socket = io.connect();     
+		var socket = io.connect();
 
 		$(function(){    
 			var $msg = $('#msg');
@@ -107,11 +111,15 @@
 			var eid = ''; 
 			var flag = false;
 
-			$.cookie('dispname',[]);
+			$('#addroom').click(function(){
+				window.open('/idinput',"_blank");
+			});
+
+			console.log('Room Name ='+ getVarName());			
 
 			document.cookie = 'flag='+flag;
 
-			$('#banner').html('Room Name: '+getCookie('roomname'));
+			$('#banner').html('Room Name: '+getVarName());
 			//socket.emit('genid',{});
 
 			socket.emit('new user', {eid: getCookie('name'), id: getCookie('oname')}, function(data){
@@ -120,31 +128,44 @@
 				}				
 			});
 
-			socket.emit('getname',{id: getCookie('oname')});
+			function getVarName(){
+				var URL = window.location.href;
+				var name = URL.substring(URL.lastIndexOf(':')+1);
+				console.log('Name fetched :' +name);
+				return name;
+			}
 
-			socket.emit('getroomname',{id: getCookie('name')});
-
-			socket.on('updateroomcookie',function(data){
-				console.log('Fetched room is '+data.roomname);
-				$.cookie('roomname',data.roomname);
-				$('#banner').html('Room Name: '+getCookie('roomname'));
-			});
-
-			socket.on('recievename',function(data){
-				var ar = $.cookie('dispname').split(',');
-				console.log(data);
-				tflag = true;
-				for(x=0;x<ar.length;x++){
-					if(ar[x]==data){
-						tflag = false;
-						break;
-					}
+			function wait(ms){
+				var start = new Date().getTime();
+				var end = start;
+				while(end < start + ms) {
+					end = new Date().getTime();
 				}
-				if(flag)
-					ar.push(data);
-				//$.cookie('dispname',[]);
-				$.cookie('dispname',ar);
-			});
+			}
+
+			var rID;
+			function DId(){
+				var room = getVarName();
+				socket.emit('getroomid',{name: room},function(data){
+					console.log('Id returned: '+data.id);
+					rID = data.id;
+					displayID();
+				});
+				//return '';				
+			}
+			var _temp = getRoomId();
+			function getRoomId(){				
+				var room = getVarName();
+				socket.emit('getroomid',{name: room},function(data){
+					console.log('Id returned: '+data.id);
+					_temp = data.id;										
+				});
+				return getTemp();		
+			}
+
+			function getTemp(){
+				return _temp;
+			}
 
 			function getCookie(name){
 				var ar = document.cookie.split(';');
@@ -167,11 +188,13 @@
 				}
 			}
 
-			function displayID(){            
-				//$('#msg').html('Your unique ID is '+getCookie('oname'));
-				$('#omsg').html('Room ID is '+getCookie('name'));
+			function displayID(){				
+				console.log("RID "+rID);     
+				$('#msg').html('Your unique ID is '+getCookie('oname'));
+				$('#omsg').html('Room ID is '+rID);
 			}
-			displayID();
+			DId();
+
 			/*function doesIdMatch(data){
 				if(eid == data)
 					return true;
@@ -189,7 +212,7 @@
 					});
 					displayID();
 					flag = doesIdMatch(data.eid);
-				});	*/							
+				});							
 
 				socket.on('usernames', function(data){				
 					if(data.eid == getCookie('name')){				
@@ -219,17 +242,19 @@
 						html += ar[i] + '<br/>';
 					}
 					$users.html(html);	
-				}
+				}*/
 
 				$messageForm.submit(function(e){
 					e.preventDefault();
-					socket.emit('send message', {msg: $message.val(),id: getCookie('oname'),eid: getCookie('name')});
+					var roomID = getRoomId();
+					console.log('Room tmp fetch '+roomID);
+					socket.emit('send message', {msg: $message.val(),id: getCookie('oname'),eid: roomID});
 					$message.val('');
 				});
 
 				socket.on('new message', function(data) {            
 					//backId = data.id;
-					if(data.eid == getCookie('name')){				
+					if(data.eid == getRoomId()){				
 						$chat.append('<strong>'+ data.user + '</strong>: '+data.msg+'<br/>');             
 					}						
 				});
@@ -270,7 +295,7 @@
 					});
 
 					// Is the user drawing?
-					if(data.drawing && clients[data.id] && data.eid == getCookie('name')){
+					if(data.drawing && clients[data.id] && data.eid == getVarName()){
 
 						// Draw a line on the canvas. clients[data.id] holds
 						// the previous position of this user's mouse pointer 
@@ -283,7 +308,7 @@
 				});	
 
 				socket.on('broadcastroom',function(data){
-					if(data.eid == getCookie('name'))
+					if(data.eid == getVarName())
 						document.cookie = 'flag=true';
 					else
 						document.cookie = 'flag=false';
@@ -314,7 +339,7 @@
 							'y': e.clientY,
 							'drawing': drawing,
 							'id': id,
-							'eid': getCookie('name')
+							'eid': getVarName()
 						});
 						lastEmit = $.now();
 					}
@@ -347,7 +372,7 @@
 				},10000);
 
 				function drawLine(fromx, fromy, tox, toy){
-					socket.emit('checkroom',{eid: getCookie('name')});
+					socket.emit('checkroom',{eid: getVarName()});
 					console.log(getCookie('flag'));
 					if(getCookie('flag')){
 						ctx.moveTo(fromx, fromy-130);

@@ -8,6 +8,7 @@
     "express": "*",
     "express-session": "^1.15.1",
     "mongoose": "^4.8.6",
+    "path": "^0.12.7",
     "socket.io": "*"
   },
   "description": "chat application",

@@ -51,7 +51,9 @@
 				e.preventDefault();
 				var _name = $('#username').val();
 				var _pass = $('#pass').val();
-				socket.emit('checkUser',{name: _name , password: _pass});
+				socket.emit('checkUser',{name: _name , password: _pass},function(data){
+					document.cookie = 'oname='+data.id;
+				});
 			});
 
 			socket.on('validateUser',function(data){
